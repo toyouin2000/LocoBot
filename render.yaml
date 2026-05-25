@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: LocoBot
+    env: docker
+    plan: free
+
+    disk:
+      name: n8n-data
+      mountPath: /home/node/.n8n
+      sizeGB: 1
+
+    envVars:
+      - key: N8N_HOST
+        value: LocoBot.onrender.com
+
+      - key: WEBHOOK_URL
+        value: https://LocoBot.onrender.com
+
+      - key: N8N_PROTOCOL
+        value: https
+
+      - key: N8N_PORT
+        value: 10000
+
+      - key: GENERIC_TIMEZONE
+        value: Asia/Kolkata
+
+      - key: TZ
+        value: Asia/Kolkata
+
+      - key: N8N_SECURE_COOKIE
+        value: true
