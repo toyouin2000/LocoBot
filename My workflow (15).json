@@ -1,0 +1,1115 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -2256,
+        336
+      ],
+      "id": "ca432cac-e39a-4a11-9f82-1bc91b4288c5",
+      "name": "Telegram Trigger",
+      "webhookId": "9b7e7d35-f682-4eba-9dd7-e84e76f3ca37",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b5882a74-b283-4089-b614-1c4b860efa28",
+              "leftValue": "={{$json.message.text}}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1936,
+        352
+      ],
+      "id": "40fdec84-269d-4e05-8955-0b5fe1998ed5",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "tableId": "trips",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "telegram_id",
+              "fieldValue": "={{$json.message.chat.id}}"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "awaiting_destination"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "draft"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1632,
+        224
+      ],
+      "id": "02590ddd-e366-416d-99aa-c8b095021ceb",
+      "name": "Create a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1424,
+        240
+      ],
+      "id": "829bdaaf-6196-42fd-ab90-5159c839d6c2",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "trips",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Create a row').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "destination_lat",
+              "fieldValue": "={{ $json.latitude }}"
+            },
+            {
+              "fieldId": "destination_lng",
+              "fieldValue": "={{ $json.longitude }}"
+            },
+            {
+              "fieldId": "destination_link",
+              "fieldValue": "={{ $('Send message and wait for response').item.json.data.text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "fe679b02-d5cb-4fd7-bf92-11567024c0a3",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "trips",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Create a row').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "arrival_datetime",
+              "fieldValue": "={{ $json.data.Day }}-{{ $json.data.Month }}-{{ $json.data.Year }}-{{ $json.data.Hour }}-{{ $json.data.Minute }}-{{ $json.data[\"AM/PM\"] }}"
+            },
+            {
+              "fieldId": "current_step",
+              "fieldValue": "awaiting_location"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        432
+      ],
+      "id": "e5f50e68-09a4-4e70-9ef9-c777dfcc7d08",
+      "name": "Update a row1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "tableId": "trips",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "telegram_id",
+              "keyValue": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}"
+            },
+            {
+              "keyName": "id",
+              "keyValue": "={{ $json.id }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -1168,
+        240
+      ],
+      "id": "7e3f40a1-7b8b-4a37-b666-90861e6ce663",
+      "name": "Get a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "Where do you want to go? \nPlease send the Google Maps link",
+        "responseType": "freeText",
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 2,
+              "resumeUnit": "minutes"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -624,
+        16
+      ],
+      "id": "c87a1bae-e73c-427d-bc99-39eb05b083c5",
+      "name": "Send message and wait for response",
+      "webhookId": "59dbd55e-ca6a-4dd5-a790-51bac8c1f3b7",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}",
+        "message": "When do you want to reach?  \nFormat: 24 August 2026 5:00 PM\nNote: Provide valid details else error will be shown",
+        "responseType": "customForm",
+        "defineForm": "json",
+        "jsonOutput": "[\n  {\n    \"fieldLabel\": \"Day\",\n    \"fieldType\": \"dropdown\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        { \"option\": \"01\" },\n        { \"option\": \"02\" },\n        { \"option\": \"03\" },\n        { \"option\": \"04\" },\n        { \"option\": \"05\" },\n        { \"option\": \"06\" },\n        { \"option\": \"07\" },\n        { \"option\": \"08\" },\n        { \"option\": \"09\" },\n        { \"option\": \"10\" },\n        { \"option\": \"11\" },\n        { \"option\": \"12\" },\n        { \"option\": \"13\" },\n        { \"option\": \"14\" },\n        { \"option\": \"15\" },\n        { \"option\": \"16\" },\n        { \"option\": \"17\" },\n        { \"option\": \"18\" },\n        { \"option\": \"19\" },\n        { \"option\": \"20\" },\n        { \"option\": \"21\" },\n        { \"option\": \"22\" },\n        { \"option\": \"23\" },\n        { \"option\": \"24\" },\n        { \"option\": \"25\" },\n        { \"option\": \"26\" },\n        { \"option\": \"27\" },\n        { \"option\": \"28\" },\n        { \"option\": \"29\" },\n        { \"option\": \"30\" },\n        { \"option\": \"31\" }\n      ]\n    }\n  },\n  {\n    \"fieldLabel\": \"Month\",\n    \"fieldType\": \"dropdown\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        { \"option\": \"January\" },\n        { \"option\": \"February\" },\n        { \"option\": \"March\" },\n        { \"option\": \"April\" },\n        { \"option\": \"May\" },\n        { \"option\": \"June\" },\n        { \"option\": \"July\" },\n        { \"option\": \"August\" },\n        { \"option\": \"September\" },\n        { \"option\": \"October\" },\n        { \"option\": \"November\" },\n        { \"option\": \"December\" }\n      ]\n    }\n  },\n  {\n    \"fieldLabel\": \"Year\",\n    \"fieldType\": \"dropdown\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        { \"option\": \"2025\" },\n        { \"option\": \"2026\" },\n        { \"option\": \"2027\" },\n        { \"option\": \"2028\" },\n        { \"option\": \"2029\" },\n        { \"option\": \"2030\" }\n      ]\n    }\n  },\n  {\n    \"fieldLabel\": \"Hour\",\n    \"fieldType\": \"dropdown\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        { \"option\": \"01\" },\n        { \"option\": \"02\" },\n        { \"option\": \"03\" },\n        { \"option\": \"04\" },\n        { \"option\": \"05\" },\n        { \"option\": \"06\" },\n        { \"option\": \"07\" },\n        { \"option\": \"08\" },\n        { \"option\": \"09\" },\n        { \"option\": \"10\" },\n        { \"option\": \"11\" },\n        { \"option\": \"12\" }\n      ]\n    }\n  },\n  {\n    \"fieldLabel\": \"Minute\",\n    \"fieldType\": \"dropdown\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        { \"option\": \"00\" },\n        { \"option\": \"05\" },\n        { \"option\": \"10\" },\n        { \"option\": \"15\" },\n        { \"option\": \"20\" },\n        { \"option\": \"25\" },\n        { \"option\": \"30\" },\n        { \"option\": \"35\" },\n        { \"option\": \"40\" },\n        { \"option\": \"45\" },\n        { \"option\": \"50\" },\n        { \"option\": \"55\" }\n      ]\n    }\n  },\n  {\n    \"fieldLabel\": \"AM/PM\",\n    \"fieldType\": \"radio\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        { \"option\": \"AM\" },\n        { \"option\": \"PM\" }\n      ]\n    }\n  }\n]",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        432
+      ],
+      "id": "dc982b1e-ca5a-4727-b7f3-20cd4c240449",
+      "name": "Send message and wait for response1",
+      "webhookId": "a00d9135-2bb0-436e-954a-f28a16ae6584",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{$node[\"Telegram Trigger\"].json[\"message\"][\"chat\"][\"id\"]}}",
+        "message": "What is your current location?",
+        "responseType": "freeText",
+        "options": {
+          "limitWaitTime": {
+            "values": {
+              "resumeAmount": 2,
+              "resumeUnit": "minutes"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -640,
+        704
+      ],
+      "id": "566a1aa0-f424-49e6-8965-bb07da03218d",
+      "name": "Send message and wait for response2",
+      "webhookId": "ad0add82-d9b5-4188-851b-8bb0bd6b623a",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "trips",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Create a row').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "current_location",
+              "fieldValue": "={{ $('Send message and wait for response2').item.json.data.text }}"
+            },
+            {
+              "fieldId": "source_lat",
+              "fieldValue": "={{ $json.latitude }}"
+            },
+            {
+              "fieldId": "source_lng",
+              "fieldValue": "={{ $json.longitude }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        688
+      ],
+      "id": "854e3e47-9680-4fb5-8e41-6c0c59415bff",
+      "name": "Update a row2",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Congrats! your reminder is set for your travel. You will be reminded in a way such that you reach exactly on time.\nDetails of the travel:\nDestination: {{ $('Send message and wait for response').item.json.data.text }} \nExpected time to reach: {{ $('Send message and wait for response1').item.json.data.Day }}-{{ $('Send message and wait for response1').item.json.data.Month }}-{{ $('Send message and wait for response1').item.json.data.Year }}-{{ $('Send message and wait for response1').item.json.data.Hour }}-{{ $('Send message and wait for response1').item.json.data.Minute }}-{{ $('Send message and wait for response1').item.json.data[\"AM/PM\"] }}\nTermination: {{ $('Send message and wait for response2').item.json.data.text }}\nTravel Vehicle: {{ $('Send message and wait for response3').item.json.data['Travel Vehicle'] }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        688
+      ],
+      "id": "d5690e05-ba88-467b-9d1a-63b7f5ef3823",
+      "name": "Send a text message",
+      "webhookId": "25a6e929-0050-47aa-8a2b-ad8f971c4515",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const url = $input.first().json.data.text;\nconst match = url.match(/@(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/);\n\nif (!match) {\n  throw new Error(\"Coordinates not found\");\n}\n\nreturn [{\n  latitude: parseFloat(match[1]),\n  longitude: parseFloat(match[2])\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        16
+      ],
+      "id": "8f1b02e3-9b75-47d5-bdda-4fa2db6c9619",
+      "name": "Code in JavaScript",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const url = $input.first().json.data.text;\nconst match = url.match(/@(-?\\d+\\.\\d+),(-?\\d+\\.\\d+)/);\n\nif (!match) {\n  throw new Error(\"Coordinates not found\");\n}\n\nreturn [{\n  latitude: parseFloat(match[1]),\n  longitude: parseFloat(match[2])\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -432,
+        704
+      ],
+      "id": "96689f60-2253-47a4-88dc-42c00b62a475",
+      "name": "Code in JavaScript1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.tomtom.com/routing/1/calculateRoute/{{$json.source_lat}},{{$json.source_lng}}:{{$json.destination_lat}},{{$json.destination_lng}}/json",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "traffic",
+              "value": "true"
+            },
+            {
+              "name": "travelMode",
+              "value": "={{ $json.travel_vehicle }}"
+            },
+            {
+              "name": "routeType",
+              "value": "fastest"
+            },
+            {
+              "name": "computeTravelTimeFor",
+              "value": "all"
+            },
+            {
+              "name": "key",
+              "value": "ZkYxUsq3sP8491M8wGDSJVdYqb0Bdzap"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1584,
+        1008
+      ],
+      "id": "e03fa441-9ace-4ad8-8334-29738a118677",
+      "name": "HTTP Request",
+      "executeOnce": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -2272,
+        1008
+      ],
+      "id": "7771a1f7-1bc5-45d5-b494-b9473004f05c",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "trips",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "reminder_sent",
+              "condition": "is",
+              "keyValue": "False"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2016,
+        1008
+      ],
+      "id": "05b3e9df-1a1f-4918-b95a-8717094199e7",
+      "name": "Get many rows1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input =$('If2').first().json.arrival_datetime\n\n\nconst months = {\n  January: \"01\",\n  February: \"02\",\n  March: \"03\",\n  April: \"04\",\n  May: \"05\",\n  June: \"06\",\n  July: \"07\",\n  August: \"08\",\n  September: \"09\",\n  October: \"10\",\n  November: \"11\",\n  December: \"12\"\n};\n\nconst parts = input.split(\"-\");\n\nconst day = parts[0].padStart(2, \"0\");\nconst month = months[parts[1]];\nconst year = parts[2];\n\nlet hour = parseInt(parts[3]);\nconst minute = parts[4];\nconst period = parts[5];\n\nif (period === \"PM\" && hour !== 12) {\n  hour += 12;\n}\n\nif (period === \"AM\" && hour === 12) {\n  hour = 0;\n}\n\nhour = String(hour).padStart(2, \"0\");\n\nconst iso =\n`${year}-${month}-${day}T${hour}:${minute}:00+05:30`;\n\nconst desiredArrival =\nnew Date(iso);\n\nconst etaMinutes =\n$input.first().json.routes[0].summary.travelTimeInSeconds / 60;\n\nconst now =\nnew Date();\n\nconst projectedArrival =\nnew Date(\n  now.getTime() + etaMinutes * 60000\n);\n\nconst thresholdTime =\nnew Date(\n  desiredArrival.getTime() - 5 * 60000\n);\n\nconst shouldAlert =\nprojectedArrival >= thresholdTime;\n\nfunction formatIST(date) {\n\n  return date.toLocaleString(\n    \"en-IN\",\n    {\n      timeZone: \"Asia/Kolkata\",\n\n      year: \"numeric\",\n      month: \"2-digit\",\n      day: \"2-digit\",\n\n      hour: \"2-digit\",\n      minute: \"2-digit\",\n      second: \"2-digit\",\n\n      hour12: false\n    }\n  );\n\n}\n\nreturn [{ \n  asd:iso,\n  sads:now,\n  eta_minutes:\n    Math.round(etaMinutes),\n\n  should_alert:\n    shouldAlert,\n\n  current_time_ist:\n    formatIST(now),\n\n  desired_arrival_ist:\n    formatIST(desiredArrival),\n\n  projected_arrival_ist:\n    formatIST(projectedArrival),\n\n  threshold_time_ist:\n    formatIST(thresholdTime)\n\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1360,
+        1008
+      ],
+      "id": "a15e8fd1-0e46-433a-94e8-e397c2750cac",
+      "name": "Code in JavaScript2",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1805eb10-8d86-4cf3-bccd-f8ee2b4b30fd",
+              "leftValue": "={{ $json.should_alert }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1152,
+        1008
+      ],
+      "id": "50f52834-52d5-4d1c-ab9d-b7d2e63c62a8",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows1').item.json.telegram_id }}",
+        "text": "=Leave now to arrive on time.  \nCurrent ETA: {{ $('Code in JavaScript2').item.json.projected_arrival_ist }}\nTravel time: {{$json.eta_minutes}} mins\nDestination: {{ $('If2').item.json.destination_link }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -928,
+        1008
+      ],
+      "id": "8595110c-4551-4db8-a6ba-626a54ad7bf5",
+      "name": "Send a text message1",
+      "webhookId": "c662ab68-3b5c-47a3-b954-8a9259fc0d95",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "trips",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Get many rows1').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "reminder_sent",
+              "fieldValue": "true"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        1008
+      ],
+      "id": "71cf0f33-0685-41c9-9730-45fd5b3a6bd6",
+      "name": "Update a row3",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f3958446-5d76-4bef-a6e0-9221a28508f0",
+              "leftValue": "={{ $json.source_lat }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "b961ce90-5592-49ed-9d40-7244fce856ac",
+              "leftValue": "={{ $json.source_lng }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "dfac3d56-3c03-4616-bf64-580f3c462a54",
+              "leftValue": "={{ $json.destination_lat }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "497b13e7-8793-41b3-8209-def6c5b34623",
+              "leftValue": "={{ $json.destination_lng }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "fda4239b-cdba-4e8c-960d-64972d4ae95d",
+              "leftValue": "={{ $json.travel_vehicle }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1840,
+        1008
+      ],
+      "id": "1afa8465-487d-4229-9671-3cb2c7205f70",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Invalid details provided. Provide correct details to set the reminder.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        240
+      ],
+      "id": "417f2598-e60d-4550-b35b-87cd9a588a80",
+      "name": "Send a text message2",
+      "webhookId": "743e4dae-43b2-4cc9-b082-dea2ae48ce86",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Invalid details provided. Provide correct details to set the reminder.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -128,
+        832
+      ],
+      "id": "c10a17d4-d7b5-41e3-80b6-c7d0975c2406",
+      "name": "Send a text message3",
+      "webhookId": "214d4d09-48b0-4215-afe6-832acd3a6bbb",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows1').item.json.telegram_id }}",
+        "text": "Server error.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1440,
+        1168
+      ],
+      "id": "814e2901-aa3a-479b-bc9b-0abf504ef29a",
+      "name": "Send a text message4",
+      "webhookId": "d911a0da-31cd-4400-b8b1-fcf800d1a3e1",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "message": "Choose the travel vehicle.",
+        "responseType": "customForm",
+        "defineForm": "json",
+        "jsonOutput": "[\n  {\n    \"fieldLabel\": \"Travel Vehicle\",\n    \"fieldType\": \"dropdown\",\n    \"placeholder\": \"Choose\",\n    \"requiredField\": true,\n    \"fieldOptions\": {\n      \"values\": [\n        {\n          \"option\": \"Pedestrian\"\n        },\n        {\n          \"option\": \"Bicycle\"\n        },\n        {\n          \"option\": \"Bus\"\n        },\n        {\n          \"option\": \"Taxi\"\n        },\n        {\n          \"option\": \"Motorcycle\"\n        }\n        \n      ]\n    } \n  } \n]\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        688
+      ],
+      "id": "4d273909-0ef5-41dc-b495-6897295672bd",
+      "name": "Send message and wait for response3",
+      "webhookId": "69c3b219-2922-4d59-a11b-4de4fbba4e97",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "trips",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "id",
+              "condition": "eq",
+              "keyValue": "={{ $('Create a row').item.json.id }}"
+            }
+          ]
+        },
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "travel_vehicle",
+              "fieldValue": "={{ $json.data['Travel Vehicle'].toLowerCase() }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        240,
+        688
+      ],
+      "id": "da6d2d4d-986a-422e-8f11-8236b72c5337",
+      "name": "Update a row4",
+      "credentials": {
+        "supabaseApi": {
+          "id": "6yyenXHxGAYTE9W4",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Get many rows1').item.json.telegram_id }}",
+        "text": "Server error.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1088,
+        1200
+      ],
+      "id": "fa594c9c-b773-436d-b686-2595b2930a6d",
+      "name": "Send a text message5",
+      "webhookId": "d911a0da-31cd-4400-b8b1-fcf800d1a3e1",
+      "credentials": {
+        "telegramApi": {
+          "id": "LHpPMOVnlG96RrY7",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Get a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a row": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response1": {
+      "main": [
+        [
+          {
+            "node": "Update a row1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row1": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row2": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Update a row2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get many rows1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows1": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message1": {
+      "main": [
+        [
+          {
+            "node": "Update a row3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response3": {
+      "main": [
+        [
+          {
+            "node": "Update a row4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a row4": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "eee567e5-7381-4389-92ba-bf14bc83884a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1a5bffc03264942114725e3751efee25908f84a1b2b5b4ee9ad079ed80798bef"
+  },
+  "id": "gwKnVQZKvEqrVKy7",
+  "tags": []
+}
